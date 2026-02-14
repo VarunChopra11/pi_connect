@@ -44,6 +44,7 @@ class PiConnectClient {
         this.togglePassword = document.getElementById('togglePassword');
         this.ipDisplay = document.getElementById('ipDisplay');
         this.ipAddressText = document.getElementById('ipAddressText');
+        this.refreshIpBtn = document.getElementById('refreshIpBtn');
         this.copyIpBtn = document.getElementById('copyIpBtn');
         
         // Event Listeners
@@ -51,6 +52,7 @@ class PiConnectClient {
         this.submitBtn.addEventListener('click', () => this.configureWiFi());
         this.disconnectBtn.addEventListener('click', () => this.disconnect());
         this.togglePassword.addEventListener('click', () => this.togglePasswordVisibility());
+        this.refreshIpBtn?.addEventListener('click', () => this.refreshIPAddress());
         this.copyIpBtn?.addEventListener('click', () => this.copyIPAddress());
         
         // Check Web Bluetooth support
@@ -152,6 +154,22 @@ class PiConnectClient {
             }
         } catch (error) {
             console.error('Failed to read IP address:', error);
+        }
+    }
+    
+    async refreshIPAddress() {
+        if (!this.characteristics.ip) {
+            this.showAlert('error', 'Not connected to Pi');
+            return;
+        }
+        
+        try {
+            this.showAlert('info', 'Refreshing IP address...');
+            await this.readIPAddress();
+            this.showAlert('success', 'IP address refreshed!');
+        } catch (error) {
+            console.error('Failed to refresh IP:', error);
+            this.showAlert('error', 'Failed to refresh IP address');
         }
     }
     
