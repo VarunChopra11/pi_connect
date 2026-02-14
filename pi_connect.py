@@ -393,8 +393,9 @@ class Characteristic(dbus.service.Object):
 class AuthChallengeCharacteristic(Characteristic):
     """Handles nonce distribution and HMAC verification"""
     
-    def __init__(self, bus, index, service, security_manager):
+    def __init__(self, bus, index, service, security_manager, pi_connect_service):
         self.security_manager = security_manager
+        self.pi_connect_service = pi_connect_service
         Characteristic.__init__(
             self, bus, index,
             Config.CHAR_AUTH_CHALLENGE_UUID,
@@ -412,8 +413,8 @@ class AuthChallengeCharacteristic(Characteristic):
     def WriteValue(self, value, options):
         """Client writes HMAC response"""
         self.value = value
+        self.pi_connect_service.received_hmac = bytes(value)
         logger.info("Received auth challenge response from client")
-        # Verification happens when SSID/PASS are written
 
 
 class WiFiSSIDCharacteristic(Characteristic):
@@ -641,7 +642,7 @@ class PiConnectService:
             self.service = Service(self.bus, 0, Config.SERVICE_UUID, True)
             
             # Create characteristics
-            auth_char = AuthChallengeCharacteristic(self.bus, 0, self.service, self.security_manager)
+            auth_char = AuthChallengeCharacteristic(self.bus, 0, self.service, self.security_manager, self)
             ssid_char = WiFiSSIDCharacteristic(self.bus, 1, self.service, self)
             pass_char = WiFiPasswordCharacteristic(self.bus, 2, self.service, self)
             self.status_char = StatusCharacteristic(self.bus, 3, self.service)
@@ -710,9 +711,23 @@ class PiConnectService:
             self.update_status("Error: Missing credentials")
             return
         
-        # Verify authentication
-        # Note: In production, client should send HMAC separately via AUTH_CHALLENGE
-        # For simplicity, we're checking if authenticated flag is set
+        # Verify HMAC authentication
+        if not self.received_hmac:
+            logger.warning("No HMAC received")
+            self.update_status("Error: Authentication required")
+            return
+        
+        # Verify the HMAC against the credentials
+        if not self.security_manager.verify_auth(self.received_hmac, self.received_ssid, self.received_password):
+            logger.warning("HMAC verification failed")
+            self.update_status("Error: Authentication failed")
+            self.security_manager.reset()
+            self.received_ssid = None
+            self.received_password = None
+            self.received_hmac = None
+            return
+        
+        # Double-check authentication status
         if not self.security_manager.is_authenticated():
             logger.warning("Unauthenticated connection attempt")
             self.update_status("Error: Authentication failed")
@@ -763,6 +778,7 @@ class PiConnectService:
             # Clear credentials
             self.received_ssid = None
             self.received_password = None
+            self.received_hmac = None
             self.security_manager.reset()
     
     def setup_button(self):
