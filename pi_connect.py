@@ -693,9 +693,16 @@ class PiConnectService:
     def stop_advertising(self):
         """Stop BLE advertising"""
         try:
+            # Unregister advertisement
             if self.ad_manager and self.adv:
                 self.ad_manager.UnregisterAdvertisement(self.adv.get_path())
                 logger.info("Advertisement unregistered")
+            
+            # Unregister GATT application
+            if self.gatt_manager and self.app:
+                self.gatt_manager.UnregisterApplication(self.app.get_path())
+                logger.info("GATT application unregistered")
+                
         except Exception as e:
             logger.error(f"Failed to stop advertising: {e}")
     
@@ -931,7 +938,7 @@ class PiConnectService:
         logger.info("Stopping Pi-Connect service...")
         self.running = False
         
-        # Stop advertising
+        # Stop advertising (will unregister both advertisement and GATT)
         self.stop_advertising()
         
         # Stop mainloop
