@@ -96,7 +96,7 @@ Configuring WiFi on a Raspberry Pi without a display, keyboard, or Ethernet conn
           │ BLE Connection       │ Credentials
           ▼                      │
     ┌──────────────────────────────────────┐
-    │   Web Client (index.html)            │
+    │   Web Client (Vite App)              │
     │   - Web Bluetooth API                │
     │   - HMAC-SHA256 Calculation          │
     │   - Real-time Status Updates         │
@@ -116,13 +116,14 @@ Configuring WiFi on a Raspberry Pi without a display, keyboard, or Ethernet conn
 - Rotating file logger (1MB max, 5 backups)
 - Comprehensive error handling
 
-### **2. Web Client (`index.html`)**
-- Single-file deployment (HTML + CSS + JS)
+### **2. Web Client (Vite + ES Modules)**
+- Modern build tooling with Vite
 - Web Bluetooth API integration
 - Crypto-JS for HMAC calculation
+- Secure environment variables (.env)
 - Modern dark mode interface
 - Real-time BLE notifications
-- Responsive mobile-first design
+- Optimized production builds
 
 ### **3. System Service (`pi-connect.service`)**
 - Systemd unit file
@@ -135,6 +136,14 @@ Configuring WiFi on a Raspberry Pi without a display, keyboard, or Ethernet conn
 - **HARDWARE_GUIDE.md:** Complete GPIO wiring instructions
 - **INSTALLATION.md:** Step-by-step setup guide
 - **README.md:** Project overview and architecture
+- **QUICK_REFERENCE.md:** Command cheat sheet
+
+### **5. Web Client Files**
+- **src/main.js:** Application logic (ES modules)
+- **index.html:** Main HTML template
+- **package.json:** Dependencies and build scripts
+- **vite.config.js:** Vite configuration
+- **.env.example:** Environment variable template
 
 ---
 
@@ -170,14 +179,21 @@ sudo systemctl start pi-connect
 
 ### **2. Deploy Web Interface**
 ```bash
-# Option A: Deploy to Vercel (recommended)
-# - Upload index.html to GitHub
-# - Import to vercel.com
-# - Update SHARED_SECRET in index.html to match Pi
+# Install dependencies
+npm install
 
-# Option B: Run locally
-python3 -m http.server 8080
-# Then open http://localhost:8080/index.html
+# Create .env file and set your shared secret
+cp .env.example .env
+# Edit .env: VITE_SHARED_SECRET=your_secret_here
+
+# Development (with hot reload)
+npm run dev
+
+# Production build
+npm run build
+
+# Deploy to Vercel: Push to GitHub, import to vercel.com
+# Set VITE_SHARED_SECRET in Vercel environment variables
 ```
 
 ### **3. Connect and Configure**

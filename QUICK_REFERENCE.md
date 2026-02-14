@@ -153,17 +153,28 @@ sudo systemctl restart pi-connect
 
 ---
 
-## 🌐 Web Interface URLs
+## 🌐 Web Interface
 
-### **Development**
-```
-http://localhost:8080/index.html
+### **Quick Commands**
+```bash
+# Development
+npm run dev          # http://localhost:3000
+
+# Production
+npm run build        # Build to dist/
+npm run preview      # Test production build
 ```
 
-### **Production (Example)**
+### **Environment Setup**
+```bash
+cp .env.example .env
+# Edit .env: VITE_SHARED_SECRET=your_secret_here
 ```
-https://your-project.vercel.app
-```
+
+### **Deploy to Vercel**
+- Push to GitHub → Import to vercel.com
+- Set env var: `VITE_SHARED_SECRET`
+- Access: `https://your-project.vercel.app`
 
 ### **Testing Web Bluetooth**
 - ✅ Chrome Desktop (Windows, Mac, Linux)
@@ -178,8 +189,9 @@ https://your-project.vercel.app
 
 ## 🔐 Security Checklist
 
-- [ ] Changed default shared secret
-- [ ] Updated secret in both Pi and web client
+- [ ] Changed default shared secret (`openssl rand -base64 32`)
+- [ ] Updated secret in Pi (`pi-connect.service`)
+- [ ] Updated secret in web client (`.env` or Vercel env vars)
 - [ ] Secret is 32+ random characters
 - [ ] Service running as root (required for BLE)
 - [ ] Logs show no authentication failures
@@ -285,15 +297,8 @@ sudo journalctl -u pi-connect -f
 | SystemD unit | `/etc/systemd/system/pi-connect.service` | Service configuration |
 | Logs | `/var/log/pi_connect.log` | Rotating log file |
 | Journal | `journalctl -u pi-connect` | SystemD logs |
-| Web client | `index.html` | Deployed to Vercel/web server |
-
----
-
-## 🎯 Quick Diagnostics
-
-### **"Is it running?"**
-```bash
-sudo systemctl is-active pi-connect
+| Web app | `src/main.js`, `index.html` | Vite-based web client |
+| Build output | `dist/` | Production build (after `npm run build`) |
 # Should output: active
 ```
 

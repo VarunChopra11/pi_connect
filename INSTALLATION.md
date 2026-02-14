@@ -287,26 +287,32 @@ ping 8.8.8.8 -c 1
 
 ### Step 10: Deploy Web Interface
 
-The `index.html` file can be:
+**Local Development:**
+```bash
+# Install dependencies
+npm install
 
-1. **Hosted on Vercel (Recommended for easy access):**
-   - Create a new repository on GitHub
-   - Upload `index.html`
-   - Import to Vercel: https://vercel.com/new
-   - Access via: `https://your-project.vercel.app`
+# Configure environment
+cp .env.example .env
+nano .env  # Set VITE_SHARED_SECRET=your_secret_here
 
-2. **Hosted locally:**
-   ```bash
-   # Simple HTTP server
-   python3 -m http.server 8080
-   ```
-   Access via: `http://localhost:8080/index.html`
+# Start dev server
+npm run dev  # Opens at http://localhost:3000
+```
 
-3. **Hosted on another device:**
-   - Copy `index.html` to any web server
-   - Or use GitHub Pages
+**Deploy to Vercel (Recommended):**
+1. Push project to GitHub
+2. Import to Vercel: https://vercel.com/new
+3. Add environment variable: `VITE_SHARED_SECRET` (must match Pi secret)
+4. Deploy
 
-**Update the shared secret in your deployed `index.html`** to match the Pi configuration.
+**Production Build:**
+```bash
+npm run build  # Creates optimized dist/ folder
+npm run preview  # Test production build locally
+```
+
+**Note:** Shared secret must match between Pi (`pi-connect.service`) and web client (`.env` or Vercel env vars).
 
 ---
 
