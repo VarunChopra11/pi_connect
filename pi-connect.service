@@ -1,0 +1,31 @@
+[Unit]
+Description=Pi-Connect 2.0 - Headless WiFi Configuration Service
+Documentation=https://github.com/your-repo/pi-connect
+After=network.target bluetooth.target
+Wants=bluetooth.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/pi-connect
+ExecStart=/usr/bin/python3 /opt/pi-connect/pi_connect.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening (optional but recommended)
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Environment variables
+Environment="PI_CONNECT_SECRET=CHANGE_ME_IN_PRODUCTION_USE_ENV_VAR"
+
+# Resource limits (zero-interference)
+Nice=10
+CPUQuota=10%
+MemoryMax=100M
+
+[Install]
+WantedBy=multi-user.target

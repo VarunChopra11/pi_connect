@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi-Connect 2.0 - WiFi Configuration</title>
+    <style>
+        /* ============================================
+           MODERN DARK MODE CSS
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #252541;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #7000ff;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --error: #ff4444;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --border: #3a3a5c;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .status-disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        .status-connected {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .status-connecting {
+            background: rgba(255, 170, 0, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--border);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9em;
+        }
+        
+        .password-toggle:hover {
+            color: var(--accent-primary);
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-error {
+            background: rgba(255, 68, 68, 0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .alert-info {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+        
+        .info-box h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 0.8em;
+        }
+        
+        #wifiForm {
+            display: none;
+        }
+        
+        #wifiForm.show {
+            display: block;
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Pi-Connect 2.0</h1>
+        <p class="subtitle">Configure your Raspberry Pi WiFi via Bluetooth</p>
+        
+        <div id="statusBadge" class="status-badge status-disconnected">
+            Disconnected
+        </div>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <div id="statusMessage" class="status-message">
+            Ready to connect
+        </div>
+        
+        <button id="connectBtn" class="btn btn-primary">
+            🔍 Connect to Pi
+        </button>
+        
+        <div id="wifiForm">
+            <div class="form-group">
+                <label for="ssid">WiFi Network (SSID)</label>
+                <input type="text" id="ssid" placeholder="Enter network name" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">WiFi Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter password" autocomplete="new-password">
+                    <button type="button" class="password-toggle" id="togglePassword">👁️</button>
+                </div>
+            </div>
+            
+            <button id="submitBtn" class="btn btn-primary">
+                ✓ Configure WiFi
+            </button>
+            
+            <button id="disconnectBtn" class="btn btn-secondary">
+                Disconnect
+            </button>
+        </div>
+        
+        <div class="info-box">
+            <h3>ℹ️ How to Use</h3>
+            <ul>
+                <li>Click "Connect to Pi" to scan for your Raspberry Pi</li>
+                <li>Select "Pi-Connect" from the device list</li>
+                <li>Enter your WiFi credentials</li>
+                <li>The Pi will connect automatically</li>
+                <li>Your credentials are secured with HMAC-SHA256</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            Made with ❤️ for Headless Raspberry Pi
+        </div>
+    </div>
+
+    <!-- Crypto-JS library for HMAC-SHA256 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        const CONFIG = {
+            SERVICE_UUID: '12345678-1234-5678-1234-56789abcdef0',
+            CHAR_AUTH_CHALLENGE_UUID: '12345678-1234-5678-1234-56789abcdef1',
+            CHAR_WIFI_SSID_UUID: '12345678-1234-5678-1234-56789abcdef2',
+            CHAR_WIFI_PASS_UUID: '12345678-1234-5678-1234-56789abcdef3',
+            CHAR_STATUS_UUID: '12345678-1234-5678-1234-56789abcdef4',
+            SHARED_SECRET: 'CHANGE_ME_IN_PRODUCTION_USE_ENV_VAR'  // Must match Pi configuration
+        };
+        
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        
+        class PiConnectClient {
+            constructor() {
+                this.device = null;
+                this.server = null;
+                this.service = null;
+                this.characteristics = {};
+                this.nonce = null;
+                
+                this.initUI();
+            }
+            
+            initUI() {
+                // UI Elements
+                this.connectBtn = document.getElementById('connectBtn');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.disconnectBtn = document.getElementById('disconnectBtn');
+                this.wifiForm = document.getElementById('wifiForm');
+                this.statusBadge = document.getElementById('statusBadge');
+                this.alertBox = document.getElementById('alertBox');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.ssidInput = document.getElementById('ssid');
+                this.passwordInput = document.getElementById('password');
+                this.togglePassword = document.getElementById('togglePassword');
+                
+                // Event Listeners
+                this.connectBtn.addEventListener('click', () => this.connect());
+                this.submitBtn.addEventListener('click', () => this.configureWiFi());
+                this.disconnectBtn.addEventListener('click', () => this.disconnect());
+                this.togglePassword.addEventListener('click', () => this.togglePasswordVisibility());
+                
+                // Check Web Bluetooth support
+                if (!navigator.bluetooth) {
+                    this.showAlert('error', 'Web Bluetooth is not supported in your browser. Please use Chrome, Edge, or Opera on desktop, or Chrome on Android.');
+                    this.connectBtn.disabled = true;
+                }
+            }
+            
+            // ============================================
+            // BLUETOOTH CONNECTION
+            // ============================================
+            
+            async connect() {
+                try {
+                    this.updateStatus('connecting', 'Scanning for devices...');
+                    this.connectBtn.disabled = true;
+                    
+                    // Request device
+                    this.device = await navigator.bluetooth.requestDevice({
+                        filters: [{ name: 'Pi-Connect' }],
+                        optionalServices: [CONFIG.SERVICE_UUID]
+                    });
+                    
+                    this.updateStatus('connecting', 'Connecting to Pi...');
+                    
+                    // Add disconnect listener
+                    this.device.addEventListener('gattserverdisconnected', () => {
+                        this.onDisconnected();
+                    });
+                    
+                    // Connect to GATT server
+                    this.server = await this.device.gatt.connect();
+                    
+                    // Get service
+                    this.service = await this.server.getPrimaryService(CONFIG.SERVICE_UUID);
+                    
+                    // Get characteristics
+                    this.characteristics.auth = await this.service.getCharacteristic(CONFIG.CHAR_AUTH_CHALLENGE_UUID);
+                    this.characteristics.ssid = await this.service.getCharacteristic(CONFIG.CHAR_WIFI_SSID_UUID);
+                    this.characteristics.password = await this.service.getCharacteristic(CONFIG.CHAR_WIFI_PASS_UUID);
+                    this.characteristics.status = await this.service.getCharacteristic(CONFIG.CHAR_STATUS_UUID);
+                    
+                    // Subscribe to status notifications
+                    await this.characteristics.status.startNotifications();
+                    this.characteristics.status.addEventListener('characteristicvaluechanged', (event) => {
+                        this.onStatusUpdate(event.target.value);
+                    });
+                    
+                    this.updateStatus('connected', 'Connected to Pi');
+                    this.showAlert('success', 'Successfully connected to Pi-Connect!');
+                    this.wifiForm.classList.add('show');
+                    
+                } catch (error) {
+                    console.error('Connection error:', error);
+                    this.updateStatus('disconnected', 'Connection failed');
+                    this.showAlert('error', `Connection failed: ${error.message}`);
+                    this.connectBtn.disabled = false;
+                }
+            }
+            
+            async disconnect() {
+                if (this.device && this.device.gatt.connected) {
+                    this.device.gatt.disconnect();
+                }
+                this.onDisconnected();
+            }
+            
+            onDisconnected() {
+                this.updateStatus('disconnected', 'Disconnected');
+                this.wifiForm.classList.remove('show');
+                this.connectBtn.disabled = false;
+                this.device = null;
+                this.server = null;
+                this.service = null;
+                this.characteristics = {};
+                this.nonce = null;
+            }
+            
+            // ============================================
+            // WIFI CONFIGURATION
+            // ============================================
+            
+            async configureWiFi() {
+                const ssid = this.ssidInput.value.trim();
+                const password = this.passwordInput.value;
+                
+                if (!ssid) {
+                    this.showAlert('error', 'Please enter a WiFi network name');
+                    return;
+                }
+                
+                if (!password) {
+                    this.showAlert('error', 'Please enter a WiFi password');
+                    return;
+                }
+                
+                try {
+                    this.submitBtn.disabled = true;
+                    this.submitBtn.innerHTML = 'Configuring... <span class="spinner"></span>';
+                    
+                    // Step 1: Read nonce from Pi
+                    this.updateStatusMessage('Reading challenge from Pi...');
+                    const nonceValue = await this.characteristics.auth.readValue();
+                    this.nonce = new Uint8Array(nonceValue.buffer);
+                    console.log('Nonce received:', Array.from(this.nonce).map(b => b.toString(16).padStart(2, '0')).join(''));
+                    
+                    // Step 2: Calculate HMAC
+                    this.updateStatusMessage('Calculating authentication...');
+                    const hmac = this.calculateHMAC(this.nonce, ssid, password);
+                    console.log('HMAC calculated:', Array.from(hmac).map(b => b.toString(16).padStart(2, '0')).join(''));
+                    
+                    // Step 3: Write HMAC back to auth characteristic
+                    this.updateStatusMessage('Authenticating...');
+                    await this.characteristics.auth.writeValue(hmac);
+                    
+                    // Small delay to allow Pi to process auth
+                    await this.sleep(500);
+                    
+                    // Step 4: Write SSID
+                    this.updateStatusMessage('Sending WiFi credentials...');
+                    const ssidBytes = new TextEncoder().encode(ssid);
+                    await this.characteristics.ssid.writeValue(ssidBytes);
+                    
+                    // Step 5: Write password (this triggers connection attempt)
+                    const passwordBytes = new TextEncoder().encode(password);
+                    await this.characteristics.password.writeValue(passwordBytes);
+                    
+                    this.updateStatusMessage('Configuration sent! Waiting for Pi...');
+                    this.showAlert('info', 'Configuration sent to Pi. Please wait...');
+                    
+                } catch (error) {
+                    console.error('Configuration error:', error);
+                    this.showAlert('error', `Configuration failed: ${error.message}`);
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.innerHTML = '✓ Configure WiFi';
+                }
+            }
+            
+            // ============================================
+            // SECURITY (HMAC)
+            // ============================================
+            
+            calculateHMAC(nonce, ssid, password) {
+                // Concatenate: nonce + ssid + password
+                const nonceHex = CryptoJS.lib.WordArray.create(nonce);
+                const ssidWords = CryptoJS.enc.Utf8.parse(ssid);
+                const passwordWords = CryptoJS.enc.Utf8.parse(password);
+                
+                const message = nonceHex.concat(ssidWords).concat(passwordWords);
+                
+                // Calculate HMAC-SHA256
+                const hmacHash = CryptoJS.HmacSHA256(message, CONFIG.SHARED_SECRET);
+                
+                // Convert to Uint8Array
+                const hmacHex = hmacHash.toString(CryptoJS.enc.Hex);
+                const hmacBytes = new Uint8Array(hmacHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                
+                return hmacBytes;
+            }
+            
+            // ============================================
+            // STATUS UPDATES
+            // ============================================
+            
+            onStatusUpdate(value) {
+                const status = new TextDecoder().decode(value);
+                console.log('Status update from Pi:', status);
+                this.updateStatusMessage(status);
+                
+                if (status.includes('Success')) {
+                    this.showAlert('success', status);
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.innerHTML = '✓ Configure WiFi';
+                    
+                    // Auto-disconnect after success
+                    setTimeout(() => {
+                        this.disconnect();
+                        this.showAlert('info', 'Pi is now connected to WiFi. You can close this page.');
+                    }, 3000);
+                    
+                } else if (status.includes('Failed') || status.includes('Error')) {
+                    this.showAlert('error', status);
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.innerHTML = '✓ Configure WiFi';
+                }
+            }
+            
+            updateStatus(state, message) {
+                this.statusBadge.className = `status-badge status-${state}`;
+                this.statusBadge.textContent = message;
+            }
+            
+            updateStatusMessage(message) {
+                this.statusMessage.textContent = message;
+            }
+            
+            showAlert(type, message) {
+                this.alertBox.className = `alert alert-${type} show`;
+                this.alertBox.textContent = message;
+                
+                setTimeout(() => {
+                    this.alertBox.classList.remove('show');
+                }, 5000);
+            }
+            
+            // ============================================
+            // UI HELPERS
+            // ============================================
+            
+            togglePasswordVisibility() {
+                const type = this.passwordInput.type === 'password' ? 'text' : 'password';
+                this.passwordInput.type = type;
+                this.togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        
+        const client = new PiConnectClient();
+        
+        // Warning about shared secret
+        if (CONFIG.SHARED_SECRET === 'CHANGE_ME_IN_PRODUCTION_USE_ENV_VAR') {
+            console.warn('⚠️ WARNING: Using default shared secret! Change this in production!');
+        }
+    </script>
+</body>
+</html>
