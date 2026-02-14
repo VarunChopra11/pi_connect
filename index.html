@@ -286,6 +286,63 @@
             justify-content: center;
         }
         
+        .ip-display {
+            display: none;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--accent-primary);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .ip-display.show {
+            display: block;
+        }
+        
+        .ip-display h4 {
+            color: var(--accent-primary);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .ip-address-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            font-weight: bold;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            user-select: all;
+        }
+        
+        .copy-btn {
+            background: var(--accent-primary);
+            border: none;
+            color: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+        
         @media (max-width: 600px) {
             .container {
                 padding: 30px 20px;
@@ -307,6 +364,14 @@
         </div>
         
         <div id="alertBox" class="alert"></div>
+        
+        <div id="ipDisplay" class="ip-display">
+            <h4>📡 Pi IP Address</h4>
+            <div class="ip-address-box">
+                <span id="ipAddressText" class="ip-address">0.0.0.0</span>
+                <button id="copyIpBtn" class="copy-btn">📋 Copy</button>
+            </div>
+        </div>
         
         <div id="statusMessage" class="status-message">
             Ready to connect

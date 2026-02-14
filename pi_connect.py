@@ -16,6 +16,7 @@ import secrets
 import subprocess
 import threading
 import logging
+import socket
 from logging.handlers import RotatingFileHandler
 from enum import Enum
 from typing import Optional, Tuple
@@ -45,6 +46,7 @@ class Config:
     CHAR_WIFI_SSID_UUID = "12345678-1234-5678-1234-56789abcdef2"
     CHAR_WIFI_PASS_UUID = "12345678-1234-5678-1234-56789abcdef3"
     CHAR_STATUS_UUID = "12345678-1234-5678-1234-56789abcdef4"
+    CHAR_IP_ADDRESS_UUID = "12345678-1234-5678-1234-56789abcdef5"
     
     # Device Information
     DEVICE_NAME = "Pi-Connect"
@@ -235,6 +237,30 @@ class NetworkManager:
         except Exception as e:
             logger.error(f"Exception during WiFi connection: {e}")
             return False, f"Error: {str(e)}"
+    
+    @staticmethod
+    def get_lan_ip() -> str:
+        """Get the current LAN IP address"""
+        try:
+            # Create a socket connection to determine the local IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.settimeout(0.1)
+            # Connect to a public DNS server (doesn't actually send data)
+            s.connect(('8.8.8.8', 80))
+            ip_address = s.getsockname()[0]
+            s.close()
+            return ip_address
+        except Exception:
+            # Fallback: try to get IP from hostname
+            try:
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                if ip_address and not ip_address.startswith('127.'):
+                    return ip_address
+            except Exception:
+                pass
+            # Last resort: return localhost
+            return "0.0.0.0"
     
     @staticmethod
     def scan_networks() -> list:
@@ -495,6 +521,25 @@ class StatusCharacteristic(Characteristic):
         pass
 
 
+class IPAddressCharacteristic(Characteristic):
+    """Returns the current LAN IP address"""
+    
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(
+            self, bus, index,
+            Config.CHAR_IP_ADDRESS_UUID,
+            ['read'],
+            service
+        )
+    
+    def ReadValue(self, options):
+        """Return current LAN IP address"""
+        ip_address = NetworkManager.get_lan_ip()
+        self.value = list(ip_address.encode('utf-8'))
+        logger.info(f"IP address read: {ip_address}")
+        return self.value
+
+
 class Service(dbus.service.Object):
     """GATT Service"""
     
@@ -646,11 +691,13 @@ class PiConnectService:
             ssid_char = WiFiSSIDCharacteristic(self.bus, 1, self.service, self)
             pass_char = WiFiPasswordCharacteristic(self.bus, 2, self.service, self)
             self.status_char = StatusCharacteristic(self.bus, 3, self.service)
+            ip_char = IPAddressCharacteristic(self.bus, 4, self.service)
             
             self.service.add_characteristic(auth_char)
             self.service.add_characteristic(ssid_char)
             self.service.add_characteristic(pass_char)
             self.service.add_characteristic(self.status_char)
+            self.service.add_characteristic(ip_char)
             
             self.app.add_service(self.service)
             

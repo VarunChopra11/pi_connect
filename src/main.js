@@ -10,6 +10,7 @@ const CONFIG = {
     CHAR_WIFI_SSID_UUID: '12345678-1234-5678-1234-56789abcdef2',
     CHAR_WIFI_PASS_UUID: '12345678-1234-5678-1234-56789abcdef3',
     CHAR_STATUS_UUID: '12345678-1234-5678-1234-56789abcdef4',
+    CHAR_IP_ADDRESS_UUID: '12345678-1234-5678-1234-56789abcdef5',
     SHARED_SECRET: import.meta.env.VITE_SHARED_SECRET || 'CHANGE_ME_IN_PRODUCTION_USE_ENV_VAR'
 };
 
@@ -24,6 +25,7 @@ class PiConnectClient {
         this.service = null;
         this.characteristics = {};
         this.nonce = null;
+        this.piIPAddress = null;
         
         this.initUI();
     }
@@ -40,12 +42,16 @@ class PiConnectClient {
         this.ssidInput = document.getElementById('ssid');
         this.passwordInput = document.getElementById('password');
         this.togglePassword = document.getElementById('togglePassword');
+        this.ipDisplay = document.getElementById('ipDisplay');
+        this.ipAddressText = document.getElementById('ipAddressText');
+        this.copyIpBtn = document.getElementById('copyIpBtn');
         
         // Event Listeners
         this.connectBtn.addEventListener('click', () => this.connect());
         this.submitBtn.addEventListener('click', () => this.configureWiFi());
         this.disconnectBtn.addEventListener('click', () => this.disconnect());
         this.togglePassword.addEventListener('click', () => this.togglePasswordVisibility());
+        this.copyIpBtn?.addEventListener('click', () => this.copyIPAddress());
         
         // Check Web Bluetooth support
         if (!navigator.bluetooth) {
@@ -87,12 +93,16 @@ class PiConnectClient {
             this.characteristics.ssid = await this.service.getCharacteristic(CONFIG.CHAR_WIFI_SSID_UUID);
             this.characteristics.password = await this.service.getCharacteristic(CONFIG.CHAR_WIFI_PASS_UUID);
             this.characteristics.status = await this.service.getCharacteristic(CONFIG.CHAR_STATUS_UUID);
+            this.characteristics.ip = await this.service.getCharacteristic(CONFIG.CHAR_IP_ADDRESS_UUID);
             
             // Subscribe to status notifications
             await this.characteristics.status.startNotifications();
             this.characteristics.status.addEventListener('characteristicvaluechanged', (event) => {
                 this.onStatusUpdate(event.target.value);
             });
+            
+            // Read IP address
+            await this.readIPAddress();
             
             this.updateStatus('connected', 'Connected to Pi');
             this.showAlert('success', 'Successfully connected to Pi-Connect!');
@@ -116,12 +126,44 @@ class PiConnectClient {
     onDisconnected() {
         this.updateStatus('disconnected', 'Disconnected');
         this.wifiForm.classList.remove('show');
+        this.ipDisplay.classList.remove('show');
         this.connectBtn.disabled = false;
         this.device = null;
         this.server = null;
         this.service = null;
         this.characteristics = {};
         this.nonce = null;
+        this.piIPAddress = null;
+    }
+    
+    // ============================================
+    // IP ADDRESS
+    // ============================================
+    
+    async readIPAddress() {
+        try {
+            const ipValue = await this.characteristics.ip.readValue();
+            this.piIPAddress = new TextDecoder().decode(ipValue);
+            console.log('IP Address:', this.piIPAddress);
+            
+            if (this.ipAddressText && this.ipDisplay) {
+                this.ipAddressText.textContent = this.piIPAddress;
+                this.ipDisplay.classList.add('show');
+            }
+        } catch (error) {
+            console.error('Failed to read IP address:', error);
+        }
+    }
+    
+    copyIPAddress() {
+        if (this.piIPAddress) {
+            navigator.clipboard.writeText(this.piIPAddress).then(() => {
+                this.showAlert('success', 'IP address copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy IP:', err);
+                this.showAlert('error', 'Failed to copy IP address');
+            });
+        }
     }
     
     // ============================================
