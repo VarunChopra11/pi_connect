@@ -268,8 +268,11 @@ class PiConnectClient {
                 this.showAlert('info', 'Pi is now connected to WiFi. You can close this page.');
             }, 3000);
             
-        } else if (status.includes('Failed') || status.includes('Error')) {
-            this.showAlert('error', status);
+        } else if (status.includes('Failed') || status.includes('Error') || status.includes('Scanning')) {
+            // Reset button state for any failure or intermediate status
+            if (status.includes('Failed') || status.includes('Error')) {
+                this.showAlert('error', status);
+            }
             this.submitBtn.disabled = false;
             this.submitBtn.innerHTML = '✓ Configure WiFi';
         }

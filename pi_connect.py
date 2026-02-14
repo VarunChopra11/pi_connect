@@ -205,6 +205,10 @@ class NetworkManager:
         try:
             logger.info(f"Attempting to connect to SSID: {ssid}")
             
+            # Force WiFi scan to ensure network list is up to date
+            subprocess.run(["nmcli", "device", "wifi", "rescan"], timeout=10)
+            time.sleep(2)  # Wait for scan to complete
+            
             # First, try to delete existing connection if it exists
             subprocess.run(
                 ["nmcli", "connection", "delete", ssid],
