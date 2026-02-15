@@ -216,12 +216,29 @@ class NetworkManager:
                 timeout=5
             )
             
-            # Add and connect to the network
+            # Create connection with explicit security type (WPA-PSK for WPA/WPA2)
             result = subprocess.run(
                 [
-                    "nmcli", "device", "wifi", "connect", ssid,
-                    "password", password
+                    "nmcli", "connection", "add",
+                    "type", "wifi",
+                    "con-name", ssid,
+                    "ssid", ssid,
+                    "wifi-sec.key-mgmt", "wpa-psk",
+                    "wifi-sec.psk", password
                 ],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode != 0:
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                logger.error(f"Failed to create connection for {ssid}: {error_msg}")
+                return False, f"Connection creation failed: {error_msg}"
+            
+            # Activate the connection
+            result = subprocess.run(
+                ["nmcli", "connection", "up", ssid],
                 capture_output=True,
                 text=True,
                 timeout=Config.CONNECTION_TIMEOUT
